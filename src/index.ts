@@ -3,7 +3,7 @@ import Redis, {
   RedisOptions,
   ClusterNode,
   ClusterOptions,
-} from 'ioredis';
+} from "ioredis";
 
 export type LockOptions = {
   redis?: RedisOptions;
@@ -20,10 +20,10 @@ class RedLock {
   private key: string;
 
   constructor(private options: LockOptions) {
-    this.key = `lock:${this.options.key}`;
+    this.key = "lock:${this.options.key}";
 
     if (!this.options.cluster && !this.options.redis) {
-      throw new Error('Setup your redis connection please!');
+      throw new Error("Setup your redis connection please!");
     }
 
     if (this.options.cluster) {
@@ -35,15 +35,15 @@ class RedLock {
       this.client = new Redis(this.options.redis!);
     }
 
-    this.client.on('error', (error: any) => {
+    this.client.on("error", (error: any) => {
       throw error;
     });
 
-    this.client.del(this.key).then();
+    this.cleanUp()
   }
 
   private delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async setnx() {
@@ -67,6 +67,17 @@ class RedLock {
 
   async release() {
     await this.client.del(this.key);
+  }
+
+  private cleanUp() {
+    const clean = () => {
+      this.release().finally(() => {
+        process.exit()
+      })
+    }
+    ["exit", "SIGINT", "SIGUSR1", "SIGUSR2", "uncaughtException", "SIGTERM"].forEach((eventType) => {
+      process.on(eventType, clean);
+    })
   }
 }
 
