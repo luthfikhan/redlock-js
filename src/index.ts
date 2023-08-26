@@ -13,14 +13,17 @@ export type LockOptions = {
   };
   key: string;
   interval?: number;
+  expire?: number,
 };
 
 class RedLock {
-  private client: any;
+  private client: Redis | Cluster;
   private key: string;
+  private prefix = 'redlock-js:'
+  private expire = 3600;
 
   constructor(private options: LockOptions) {
-    this.key = "lock:${this.options.key}";
+    this.key = `${this.prefix}${this.options.key}`;
 
     if (!this.options.cluster && !this.options.redis) {
       throw new Error("Setup your redis connection please!");
@@ -39,18 +42,7 @@ class RedLock {
       throw error;
     });
 
-    this.cleanUp()
-  }
-
-  private delay(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  private async setnx() {
-    const lockValue = new Date().toString();
-    const result = await this.client.setnx(this.key, lockValue);
-
-    return result === 0;
+    this.cleanUp();
   }
 
   async lock() {
@@ -67,17 +59,63 @@ class RedLock {
 
   async release() {
     await this.client.del(this.key);
+    await this.end()
+  }
+
+  async clean() {
+    let cursor = '0';
+    do {
+      const result = await this.client.scan(cursor, "MATCH", `${this.prefix}*`)
+  
+      if (Array.isArray(result) && result[1].length > 0) {
+        await this.client.del(...result[1]);
+      }
+  
+      cursor = result[0];
+    } while (cursor !== '0');
+  }
+
+  async isLocking() {
+    const result = await this.client.get(this.key)
+
+    return Boolean(result)
+  }
+
+  async end() {
+    await this.client.quit()
+  }
+
+  private delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async setnx() {
+    const lockValue = new Date().toString();
+    const result = await this.client.setnx(this.key, lockValue);
+
+    if (result === 1) {
+      this.client.expire(this.key, this.options.expire ?? this.expire)
+    }
+
+    return result === 0;
   }
 
   private cleanUp() {
     const clean = () => {
       this.release().finally(() => {
-        process.exit()
-      })
-    }
-    ["exit", "SIGINT", "SIGUSR1", "SIGUSR2", "uncaughtException", "SIGTERM"].forEach((eventType) => {
+        process.exit();
+      });
+    };
+    [
+      "exit",
+      "SIGINT",
+      "SIGUSR1",
+      "SIGUSR2",
+      "uncaughtException",
+      "SIGTERM",
+    ].forEach((eventType) => {
       process.on(eventType, clean);
-    })
+    });
   }
 }
 

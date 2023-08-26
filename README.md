@@ -54,3 +54,30 @@ You can configure RedLock by providing options when creating an instance:
 - `cluster`: If you're using a Redis cluster, provide cluster configuration.
 - `key`: The unique key for your lock.
 - `interval` (optional): Retry interval in milliseconds when attempting to acquire the lock.
+- `expire` (optional):  Expiration time in seconds for the lock key. Setting an expiration time allows you to automatically release the lock after a certain duration, effectively locking a resource without needing an explicit release operation.
+
+## Additional Functionality
+### Automatic Cleanup
+RedLock includes an automatic cleanup function that can be used to clean up leftover lock keys. You can use the `clean` method to scan and delete expired lock keys from the Redis database.
+
+```JavaScript
+await redlock.clean();
+```
+By calling the `clean` method, you can ensure that expired lock keys are removed, preventing potential issues with stale locks.
+
+### Checking Lock Status
+You can also check whether a lock is currently active using the `isLocking` method:
+
+```JavaScript
+const lockingStatus = await redlock.isLocking();
+console.log(`Is locking: ${lockingStatus}`);
+```
+The `isLocking` method returns a boolean indicating whether the lock is currently active or not.
+
+### Close the Redis Connection
+To properly release resources and end the Redis connection, use the `end` method:
+
+```JavaScript
+await redlock.end();
+```
+Calling the `end` method will gracefully close the connection to the Redis server. Additionally, when you call the `release` method, the lock will be released and the associated Redis connection will be closed.
