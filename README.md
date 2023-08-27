@@ -82,6 +82,6 @@ await redlock.end();
 ```
 Calling the `end` method will gracefully close the connection to the Redis server. Additionally, when you call the `release` method, the lock will be released and the associated Redis connection will be closed.
 
-<a href="https://www.buymeacoffee.com/luthfikhan">
-  <img width="200" src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-1.svg" />
+<a href="https://www.buymeacoffee.com/luthfikhan" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
 </a>
