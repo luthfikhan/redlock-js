@@ -53,8 +53,8 @@ You can configure RedLock by providing options when creating an instance:
 - `redis`: Redis connection options.
 - `cluster`: If you're using a Redis cluster, provide cluster configuration.
 - `key`: The unique key for your lock.
-- `interval` (optional): Retry interval in milliseconds when attempting to acquire the lock.
-- `expire` (optional):  Expiration time in seconds for the lock key. Setting an expiration time allows you to automatically release the lock after a certain duration, effectively locking a resource without needing an explicit release operation.
+- `interval` (default: 100): Retry interval in milliseconds when attempting to acquire the lock.
+- `expire` (default: 300):  Expiration time in seconds for the lock key. Setting an expiration time allows you to automatically release the lock after a certain duration, effectively locking a resource without needing an explicit release operation.
 
 ## Additional Functionality
 ### Automatic Cleanup
@@ -81,3 +81,7 @@ To properly release resources and end the Redis connection, use the `end` method
 await redlock.end();
 ```
 Calling the `end` method will gracefully close the connection to the Redis server. Additionally, when you call the `release` method, the lock will be released and the associated Redis connection will be closed.
+
+<a href="https://www.buymeacoffee.com/luthfikhan">
+  <img width="200" src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-1.svg" />
+</a>

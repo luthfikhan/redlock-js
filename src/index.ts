@@ -20,7 +20,7 @@ class RedLock {
   private client: Redis | Cluster;
   private key: string;
   private prefix = 'redlock-js:'
-  private expire = 3600;
+  private expire = 300;
 
   constructor(private options: LockOptions) {
     this.key = `${this.prefix}${this.options.key}`;
@@ -41,8 +41,6 @@ class RedLock {
     this.client.on("error", (error: any) => {
       throw error;
     });
-
-    this.cleanUp();
   }
 
   async lock() {
@@ -98,24 +96,6 @@ class RedLock {
     }
 
     return result === 0;
-  }
-
-  private cleanUp() {
-    const clean = () => {
-      this.release().finally(() => {
-        process.exit();
-      });
-    };
-    [
-      "exit",
-      "SIGINT",
-      "SIGUSR1",
-      "SIGUSR2",
-      "uncaughtException",
-      "SIGTERM",
-    ].forEach((eventType) => {
-      process.on(eventType, clean);
-    });
   }
 }
 
