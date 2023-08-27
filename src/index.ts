@@ -47,9 +47,9 @@ class RedLock {
     let isLock = false;
 
     do {
-      await this.delay(this.options.interval ?? 100);
-
       isLock = await this.setnx();
+
+      await this.delay(this.options.interval ?? 100);
     } while (isLock);
 
     return Promise.resolve();
